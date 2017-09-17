@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup as bs
 import requests
 
 def get_input(): #Takes a string explaining the rules of the input and asks the user to input a response
-    search_term=input("What would you like help with: ")
+    search_term=input("Welcome to StackWorkflow! Type in 'quit' at any time to exit. What would you like help with? \n ")
     return search_term
 
 class ask():
@@ -57,14 +57,27 @@ class ask():
         return url
 
     def get_answer(self, url): #Returns the top answer for the given page url
+        green='\033[92m'
+        red='\033[91m'
+        bold='\033[1m'
         content=self.get_page(url)
-        answer=[]
         answer_content=(content.find_all(class_="answercell"))[0]
-        return (answer_content.find_all(class_="post-text"))[0].get_text()
+        code=answer_content.findAll("pre")
+        for i in range(len(code)):
+            code[i]=code[i].get_text()
+        answer= (answer_content.find_all(class_="post-text"))[0].get_text()
+        for c in code:
+            if c in answer:
+                answer=answer.replace(c,(bold+green+red+c+red+green+bold))
+        return bold+green+answer+green+bold
+
 
 
     def execute(self):
         search_term=get_input()
+        if search_term == "quit":
+            print("Goodbye")
+            return None
         url=self.make_search_url(search_term)
         search_summary=self.condense_questions(url)
         count=1
@@ -73,17 +86,64 @@ class ask():
             count+=1
         done = False
         while True:
+            count = 1
             index=input("Which of these questions sounds the most like your yours? ")
-            answer=self.get_answer(self.make_answer_url(search_summary, index))
-            print(answer)
-            satisfied = input("Would you like to see the other questions again? [Y/N]")
-            if satisfied.lower() == "n":
-                break
-            else:
-                for i in search_summary:
-                    print(str(count)+". "+str((search_summary[i])[1]))
-                    count+=1
+            try:
+                answer=self.get_answer(self.make_answer_url(search_summary, index))
+                print(answer)
                 
+                satisfied = input("Would you like to see the other questions again? [Y/N]")
+                #print(100*satisfied)
+                if satisfied.lower().split() in [['n'],['quit']]:
+                    #print(100*"yah")
+                    print('Goodbye')
+                    break
+                else:
+                    for i in search_summary:
+                        print(str(count)+". "+str((search_summary[i])[1]))
+                        count+=1
+            except:
+                print("Sorry, I couldn't recognize that input, try again")
+            
+        """      
+        search_term=get_input()
+        if search_term == 'quit':
+            return None
+        url=self.make_search_url(search_term)
+        search_summary=self.condense_questions(url)
+        count=1
+        for i in search_summary:
+            print(str(count)+". "+str((search_summary[i])[1]))
+            count+=1  
+        done = False
+        while True:
+            try:
+             
+                index=input("Which of these questions sounds the most like your yours?\n ")
+                if index == 'quit':
+                    break
+                try:
+                    answer=self.get_answer(self.make_answer_url(search_summary, index))
+                except SystemError:
+                    print("Sorry, it doesn't look like your question is getting any results. Try rephrasing it for a better answer or type quit to exit")
+                    
+                    
+                print(answer)
+
+                satisfied = input("Would you like to more questions? [Y/N]\n")
+                if satisfited == 'quit':
+                    print(9292929292)
+                    return None
+                if satisfied.lower().strip() == "n":
+                    return None
+                else:
+                    for i in search_summary:
+                        print(str(count)+". "+str((search_summary[i])[1]))
+                        count+=1
+            except:
+                print("Sorry I didn't understand your response. Pleast try again")
+
+                """
                 
                 
 
